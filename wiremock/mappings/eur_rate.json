@@ -1,0 +1,15 @@
+{
+    "request": {
+        "method": "GET",
+        "url": "/v1/rates/eur"
+    },
+    "response": {
+        "status": 200,
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "jsonBody": {
+            "rate": 100.0
+        }
+    }
+}

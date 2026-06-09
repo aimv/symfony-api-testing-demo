@@ -1,0 +1,7 @@
+### Создание заказа с конвертацией валюты
+POST http://localhost/api/v1/orders
+Content-Type: application/json
+
+{
+    "amount_rub": 5000
+}

@@ -8,6 +8,11 @@ framework:
     #esi: true
     #fragments: true
 
+    http_client:
+        scoped_clients:
+            bank.client:
+                base_uri: '%env(EXTERNAL_BANK_API_URL)%'
+
 when@test:
     framework:
         test: true
