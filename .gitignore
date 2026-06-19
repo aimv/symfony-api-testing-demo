@@ -8,3 +8,22 @@
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###
+
+###> Codeception ###
+/tests/Support/_generated/
+/tests/_output/
+.phpunit.result.cache
+###< Codeception ###
+
+###> PhpStorm ###
+/.idea/
+###< PhpStorm ###
+
+###> Docker Local ###
+/compose.override.yaml
+###< Docker Local ###

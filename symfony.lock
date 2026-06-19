@@ -1,4 +1,95 @@
 {
+    "codeception/codeception": {
+        "version": "5.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "5.0",
+            "ref": "d2e352c4777ebd645b269ecdf793deccce16bf50"
+        },
+        "files": [
+            "codeception.yml",
+            "tests/Acceptance.suite.yml",
+            "tests/Acceptance/.gitignore",
+            "tests/Functional.suite.yml",
+            "tests/Functional/.gitignore",
+            "tests/Support/AcceptanceTester.php",
+            "tests/Support/Data/.gitignore",
+            "tests/Support/FunctionalTester.php",
+            "tests/Support/Helper/.gitignore",
+            "tests/Support/UnitTester.php",
+            "tests/Support/_generated/.gitignore",
+            "tests/Unit.suite.yml",
+            "tests/Unit/.gitignore",
+            "tests/_output/.gitignore"
+        ]
+    },
+    "dama/doctrine-test-bundle": {
+        "version": "8.6",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "8.3",
+            "ref": "dfc51177476fb39d014ed89944cde53dc3326d23"
+        },
+        "files": [
+            "config/packages/dama_doctrine_test_bundle.yaml"
+        ]
+    },
+    "doctrine/deprecations": {
+        "version": "1.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "1.0",
+            "ref": "fdd756167454623e21f1d769c5b814b243782a67"
+        }
+    },
+    "doctrine/doctrine-bundle": {
+        "version": "3.2",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "3.0",
+            "ref": "d39a3bd844edfe90c20ae520b804a3bf4f82b4ad"
+        },
+        "files": [
+            "config/packages/doctrine.yaml",
+            "src/Entity/.gitignore",
+            "src/Repository/.gitignore"
+        ]
+    },
+    "doctrine/doctrine-fixtures-bundle": {
+        "version": "4.3.1"
+    },
+    "doctrine/doctrine-migrations-bundle": {
+        "version": "4.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "3.1",
+            "ref": "1d01ec03c6ecbd67c3375c5478c9a423ae5d6a33"
+        },
+        "files": [
+            "config/packages/doctrine_migrations.yaml",
+            "migrations/.gitignore"
+        ]
+    },
+    "phpunit/phpunit": {
+        "version": "13.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "11.1",
+            "ref": "ca0bc067abfb40a8de1b2561b96cbfc2b833c314"
+        },
+        "files": [
+            ".env.test",
+            "phpunit.dist.xml",
+            "tests/bootstrap.php",
+            "bin/phpunit"
+        ]
+    },
     "symfony/console": {
         "version": "8.0",
         "recipe": {
@@ -65,5 +156,14 @@
             "config/packages/routing.yaml",
             "config/routes.yaml"
         ]
+    },
+    "symfony/uid": {
+        "version": "8.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "7.0",
+            "ref": "0df5844274d871b37fc3816c57a768ffc60a43a5"
+        }
     }
 }

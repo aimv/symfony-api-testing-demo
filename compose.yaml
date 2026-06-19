@@ -1,14 +1,20 @@
 ---
 services:
+  # Основной контейнер для локальной разработки.
   php:
+    # Запускается только в профиле dev (или по умолчанию)
+    profiles: [ "dev" ]
+    build:
+      context: .
+      target: frankenphp_dev
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
       DEFAULT_URI: https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
-      # Run "composer require symfony/orm-pack" to install and configure Doctrine ORM
-      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-15}&charset=${POSTGRES_CHARSET:-utf8}
       # Run "composer require symfony/mercure-bundle" to install and configure the Mercure integration
       MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
       MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
@@ -16,6 +22,7 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+      - .:/app:cached
     ports:
       - name: http
         target: 80
@@ -29,10 +36,59 @@ services:
         target: 443
         published: ${HTTP3_PORT:-443}
         protocol: udp
+    depends_on:
+      database:
+        condition: service_healthy
 
-# Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
-###> symfony/mercure-bundle ###
-###< symfony/mercure-bundle ###
+  # Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
+  ###> symfony/mercure-bundle ###
+  ###< symfony/mercure-bundle ###
+
+
+  database:
+    image: postgres:15-alpine
+    container_name: symfony_postgres
+    # Наследует переменные из файлов .env / .env.test в зависимости от команды запуска
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_DB_NAME: ${APP_DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+
+  # Изолированный контейнер для запуска тестов
+  php-test:
+    # Запускается только в профиле test
+    profiles: ["test"]
+    build:
+      context: .
+      target: frankenphp_dev
+    restart: unless-stopped
+    # Порядок ВАЖЕН: сначала загружается .env, а затем .env.test ПЕРЕЗАПИСЫВАЕТ его значения
+    env_file:
+      - .env
+      - .env.test
+    environment:
+      SERVER_NAME: http://localhost:80, http://php-test:80
+    volumes:
+      - .:/app:cached
+    # В тестовом контейнере нам не нужно прокидывать порты наружу на хост-машину Windows.
+    # Codeception внутри этого контейнера будет обращаться к своему локальному FrankenPHP.
+    depends_on:
+      database:
+        condition: service_healthy
+
 
   wiremock:
     image: wiremock/wiremock:3.12.0
@@ -43,7 +99,9 @@ services:
       - ./wiremock:/home/wiremock
     restart: unless-stopped
 
+
 volumes:
   caddy_data:
   caddy_config:
+  db_data:
 
