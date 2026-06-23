@@ -7,6 +7,9 @@ dev-up:
 dev-down:
 	docker compose --profile dev down
 
+dev-exec:
+	docker compose --profile dev exec -u nonroot php bash
+
 # --- TEST ОКРУЖЕНИЕ ---
 test-up:
 	docker compose --env-file .env --env-file .env.test --profile test up -d

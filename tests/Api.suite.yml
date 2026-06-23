@@ -2,11 +2,19 @@ actor: ApiTester
 modules:
     enabled:
         - REST:
-              # Указываем URL нашего Symfony-приложения внутри тестового окружения.
-              # Так как тесты будут запускаться внутри того же контейнера 'php',
-              # мы можем слать запросы прямо на localhost
-              url: http://localhost/api/v1/
-              depends: PhpBrowser
+            # Указываем URL нашего Symfony-приложения внутри тестового окружения.
+            # Так как тесты будут запускаться внутри того же контейнера 'php',
+            # мы можем слать запросы прямо на localhost
+            url: http://localhost/api/v1/
+            depends: PhpBrowser
         - PhpBrowser:
-              url: http://localhost/api/v1/
+            url: http://localhost/api/v1/
+        - Symfony:
+            app_path: 'src'
+            environment: 'test'
+            # ВАЖНО: берем только служебные методы фреймворка,
+            # исключая дублирующие веб-действия (браузер)
+            part: Services
         - Asserts
+        # Подключаем свой хелпер для красивых методов работы с БД (раз не получилось подключить Doctrine2)
+        - \App\Tests\Support\Helper\DbHelper

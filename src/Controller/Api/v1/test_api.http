@@ -1,7 +1,8 @@
-### Создание заказа с конвертацией валюты
+### Создание инвойса для компании
 POST http://localhost/api/v1/orders
 Content-Type: application/json
 
 {
-    "amount_rub": 5000
+    "company_id": "01HFT8Z6X8X...",//подставить существующий в бд id
+    "amount_rub": 150000
 }
