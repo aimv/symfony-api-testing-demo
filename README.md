@@ -1,60 +1,99 @@
-# Symfony Docker
+# Symfony B2B Invoice Service & API Testing Sandbox
 
-A [Docker](https://www.docker.com/)-based installer and runtime for the [Symfony](https://symfony.com) web framework,
-with [FrankenPHP](https://frankenphp.dev) and [Caddy](https://caddyserver.com/) inside!
+Учебный демонстрационный проект на базе **Symfony 8** и **PHP 8.5+**, развернутый в изолированном **Docker**-окружении с использованием веб-сервера **FrankenPHP**.
 
-Specially tailored for coding agents: ships with a [Dev Container](https://containers.dev/) configuration
-that lets [Claude Code](https://claude.ai/claude-code) (and other AI coding assistants) run in fully autonomous
-mode inside a sandboxed environment.
+Проект разработан как эталонный полигон для демонстрации разработчикам современных практик проектирования REST API, изоляции тестовых сред, работы с динамическими фикстурами и организации надежного API-тестирования.
 
-![CI](https://github.com/dunglas/symfony-docker/workflows/CI/badge.svg)
+## 💼 Бизнес-логика
 
-## Getting Started
+Проект представляет собой B2B-микросервис выставления и учета международных счетов (инвойсов) между компаниями:
+1. **Регистрация сущностей**: В системе существуют Пользователи (директора) и связанные с ними Компании (юридические лица). Идентификаторы всех сущностей построены на базе строгого стандарта **UUID** (сортируемые UUIDv7/v4).
+2. **POST /api/v1/orders** — Выставление счета. Принимает `company_id` и `amount_rub`. Контроллер запрашивает текущий курс евро у внешнего банковского API, рассчитывает сумму в EUR, сохраняет заказ в PostgreSQL и возвращает клиенту UUID созданного инвойса.
+3. **GET /api/v1/companies/{id}/orders** — Получение списка счетов конкретной компании. Архитектура оптимизирована под Middle+ стандарты: для исключения проблемы **N+1 запросов** и экономии памяти используется паттерн **Native DTO Hydration** (Doctrine вытягивает плоские легковесные DTO одним SQL JOIN-запросом, минуя тяжелые сущности ORM). Глобальный вывод ID настроен в формате RFC4122.
 
-1. If not already done, [install Docker Compose](https://docs.docker.com/compose/install/) (v2.10+)
-2. Run `docker compose build --pull --no-cache` to build fresh images
-3. Run `docker compose up --wait` to set up and start a fresh Symfony project
-4. Open `https://localhost` in your favorite web browser and [accept the auto-generated TLS certificate](https://stackoverflow.com/a/15076602/1352334)
-5. Run `docker compose down --remove-orphans` to stop the Docker containers.
+## 🧪 Архитектура API-тестов
 
-## Features
+В проекте реализовано полноценное автоматическое тестирование по принципу «черного ящика» с помощью фреймворка **Codeception 5**:
+* **Изоляция сторонних интеграций**: Запросы к внешнему банку в тестах полностью изолированы и мокаются с помощью **WireMock** (официальный образ в Docker).
+* **Декларативное управление данными**: База данных наполняется фикстурами выборочно под каждый тест.
+* **Нативная транзакционность**: Использование `dama/doctrine-test-bundle` гарантирует, что каждый тест автоматически выполняется внутри изолированной SQL-транзакции и делает `ROLLBACK` после завершения. База всегда остается идеально чистой.
 
-- Production, development and CI ready
-- Just 1 service by default
-- Super-readable configuration
-- Blazing-fast performance thanks to [the worker mode of FrankenPHP](https://frankenphp.dev/docs/worker/)
-- [Installation of extra Docker Compose services](docs/extra-services.md) with Symfony Flex
-- Automatic HTTPS (in dev and prod)
-- HTTP/3 and [Early Hints](https://symfony.com/blog/new-in-symfony-6-3-early-hints) support
-- Real-time messaging thanks to a built-in [Mercure hub](https://symfony.com/doc/current/mercure.html)
-- [Vulcain](https://vulcain.rocks) support
-- Native [XDebug](docs/xdebug.md) integration
-- [Hot Reloading](https://frankenphp.dev/docs/hot-reload/)
-- [Dev Container](https://containers.dev/) support, optimized for AI coding agents
-- [AI coding agents](docs/agents.md) with sandboxing out of the box
-- Rootless, slim production image
+---
 
-**Enjoy!**
+## 🚀 Быстрый старт (Локальное развертывание)
 
-## Docs
+### Требования к хост-системе
+* Windows 10/11 с включенным **WSL2 (Ubuntu)** или нативная Linux (Ubuntu).
+* Установленный **Docker Desktop** (с интеграцией в WSL2, если используется Windows).
+* Все команды ниже выполняются строго **внутри терминала WSL/Linux**.
 
-1. [Options available](docs/options.md)
-2. [Using Symfony Docker with an existing project](docs/existing-project.md)
-3. [Support for extra services](docs/extra-services.md)
-4. [Deploying in production](docs/production.md)
-5. [Debugging with Xdebug](docs/xdebug.md)
-6. [TLS Certificates](docs/tls.md)
-7. [Using MySQL instead of PostgreSQL](docs/mysql.md)
-8. [Using Alpine Linux instead of Debian](docs/alpine.md)
-9. [Using a Makefile](docs/makefile.md)
-10. [Updating the template](docs/updating.md)
-11. [Troubleshooting](docs/troubleshooting.md)
-12. [Using AI Coding Agents](docs/agents.md)
+### 1. Клонирование и подготовка
+Склонируйте репозиторий в файловую систему WSL (код должен лежать внутри Linux-директории, например `/home/user/dev/`, а не на диске `/mnt/c/` Windows, во избежание замедления ФС).
 
-## License
+### 2. Запуск окружения разработки (Dev)
+Для управления процессами используется удобный `Makefile`:
 
-Symfony Docker is available under the MIT License.
+```bash
+# Поднять dev-контейнеры (PHP/FrankenPHP, PostgreSQL) в фоне
+make dev-up
+```
+*При первом запуске Docker автоматически скачает образы, соберет локальный Dockerfile и установит зависимости через Composer. Веб-сервер станет доступен по адресу `http://localhost`.*
 
-## Credits
+Зайти внутрь работающего dev-контейнера из-под безопасного пользователя (чтобы не ломать права на файлы):
+```bash
+docker compose --profile dev exec -u nonroot php bash
+```
+(или см. короткий алиас для этой команды в Makefile)
 
-Created by [Kévin Dunglas](https://dunglas.dev), co-maintained by [Maxime Helias](https://twitter.com/maxhelias) and sponsored by [Les-Tilleuls.coop](https://les-tilleuls.coop).
+Внутри контейнера инициализируйте базу данных разработки:
+```bash
+bin/console doctrine:database:create
+bin/console doctrine:migrations:migrate --no-interaction
+```
+
+### 3. Ручное тестирование API (Как дергать эндпоинты)
+В папке `src/Controller/Api/v1/` подготовлен файл `test_api.http` для тестирования запросов напрямую из PhpStorm (или через расширение REST Client в VS Code).
+
+**Пример POST-запроса (Выставление счета):**
+```http
+POST http://localhost/api/v1/orders
+Content-Type: application/json
+
+{
+    "company_id": "019ef903-068f-7c59-8379-0d45c0c2c4a7", 
+    "amount_rub": 150000
+}
+```
+
+---
+
+## 🛠 Запуск API-тестов
+
+Тесты запускаются в полностью изолированном контейнере `php-test`, работающем в честном `APP_ENV=test` со своей выделенной БД `app_test`.
+
+### 1. Подготовка тестового окружения
+Выполните команды в терминале хост-машины WSL:
+
+```bash
+# 1. Поднять тестовое окружение и WireMock в фоне
+make test-up
+
+# 2. Пересобрать Actor-классы Codeception внутри контейнера
+docker compose --env-file .env --env-file .env.test --profile test run --rm --entrypoint "vendor/bin/codecept build" php-test
+```
+
+### 2. Запуск тестов одной командой
+```bash
+make test-run
+```
+**Что делает `make test-run` под капотом:**
+1. Проверяет наличие тестовой базы данных `app_test` и автоматически создает её при первом запуске.
+2. Автоматически накатывает миграции структуры таблиц на тестовую базу.
+3. Запускает прогон 6 сценариев Codeception (валидация, успешное создание инвойса, пустые списки, ошибки 404, сквозной сценарий POST -> GET).
+
+### 3. Утилиты и очистка
+```bash
+make ps      # Посмотреть статус всех запущенных dev/test контейнеров
+make logs    # Посмотреть логи всех сервисов в реальном времени
+make clean   # Полностью остановить все окружения и удалить созданные Docker-тома (БД)
+```
