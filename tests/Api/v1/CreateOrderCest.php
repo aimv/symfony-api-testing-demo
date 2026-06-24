@@ -5,7 +5,7 @@ namespace App\Tests\Api\v1;
 use App\Entity\Company;
 use App\Tests\Support\ApiTester;
 use Codeception\Util\HttpCode;
-use Symfony\Component\Uid\Ulid;
+use Symfony\Component\Uid\Uuid;
 
 class CreateOrderCest
 {
@@ -59,7 +59,7 @@ class CreateOrderCest
         $I->haveHttpHeader('Content-Type', 'application/json');
 
         // Генерируем случайный, валидный по структуре, но несуществующий ULID
-        $fakeCompanyId = new Ulid()->toString();
+        $fakeCompanyId = Uuid::v4()->toRfc4122();
 
         $I->sendPost('orders', [
             'company_id' => $fakeCompanyId,

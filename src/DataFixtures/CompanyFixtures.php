@@ -15,11 +15,18 @@ class CompanyFixtures extends Fixture implements DependentFixtureInterface
     {
         $company = new Company();
         $company->setName('Middle Tech LLC');
-
-        // Получаем созданного пользователя по ссылке из предыдущей фикстуры
-        $company->setOwner($this->getReference(UserFixtures::USER_ADMIN_REFERENCE, User::class));
-
+        $company->setOwner(
+            $this->getReference(UserFixtures::USER_ADMIN_REFERENCE, User::class)
+        );
         $manager->persist($company);
+
+        $company2 = new Company();
+        $company2->setName('Test New Company');
+        $company2->setOwner(
+            $this->getReference(UserFixtures::USER_ADMIN_REFERENCE, User::class)
+        );
+        $manager->persist($company2);
+
         $manager->flush();
     }
 

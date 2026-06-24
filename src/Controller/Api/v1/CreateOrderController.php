@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Uid\Ulid;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -42,12 +42,13 @@ class CreateOrderController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         // Валидация входных параметров
-        if (!isset($data['company_id']) || !Ulid::isValid($data['company_id'])) {
+        if (!isset($data['company_id']) || !Uuid::isValid($data['company_id'])) {
             return new JsonResponse(
                 ['error' => 'Invalid or missing company_id'],
                 Response::HTTP_BAD_REQUEST
             );
         }
+
         if (!isset($data['amount_rub']) || !is_numeric($data['amount_rub']) || (float)$data['amount_rub'] <= 0) {
             return new JsonResponse(
                 ['error' => 'Invalid or missing amount_rub'],
@@ -56,7 +57,8 @@ class CreateOrderController extends AbstractController
         }
 
         // 1. Ищем компанию в базе данных
-        $company = $this->entityManager->getRepository(Company::class)->find($data['company_id']);
+        $companyUid = Uuid::fromString($data['company_id']);
+        $company = $this->entityManager->getRepository(Company::class)->find($companyUid);
         if (!$company) {
             return new JsonResponse(['error' => 'Company not found'], Response::HTTP_NOT_FOUND);
         }
@@ -92,7 +94,7 @@ class CreateOrderController extends AbstractController
             // 4. Возвращаем ответ
             return new JsonResponse([
                 'status' => 'created',
-                'order_id' => $order->id->toRfc4122(), // строковый ULID созданного заказа
+                'order_id' => $order->id->toRfc4122(), // строковый UUID созданного заказа
                 'company_name' => $company->getName(),
                 'amount_rub' => $order->getAmountRub(),
                 'rate_eur' => $order->getRateEur(),

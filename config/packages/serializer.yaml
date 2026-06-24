@@ -1,0 +1,5 @@
+framework:
+    serializer:
+        default_context:
+            Symfony\Component\Serializer\Normalizer\UidNormalizer:
+                normalization_format: 'rfc4122' # Принудительно 36-символьный формат для всех UUID/ULID
